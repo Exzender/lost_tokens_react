@@ -5,6 +5,7 @@
  * @return {string} The formatted number as a string.
  */
 export function numberWithCommas(x: number) {
+    if (x < 0.000001) return '0.00'
     const parts = x.toString().split(".")
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     if (parts.length > 1) {

@@ -105,7 +105,7 @@ export const tokens = {
 
 // export const rpcMap
 export const rpcMap = new Map([
-    ['eth', 'https://eth.llamarpc.com'], // https://eth.meowrpc.com'], // 'https://ethereum.publicnode.com'], // 'https://eth.llamarpc.com'
+    ['eth', 'https://eth.llamarpc.com'], // https://eth.meowrpc.com'], // 'https://ethereum.publicnode.com'], // 'https://eth.llamarpc.com' // 'https://rpc.payload.de'
     ['bsc', 'https://binance.llamarpc.com'],
     ['polygon', 'https://polygon.llamarpc.com']
 ])

@@ -4,7 +4,7 @@ import { rpcMap, ERC20 } from './const'
 import { numberWithCommas } from "./utils";
 
 // how many concurrent requests to make - different node may limit number of incoming requests - so 20 is a good compromise
-const asyncProcsNumber = 100  // with 50 there were some errors in requests
+const asyncProcsNumber = 10  // with 50 there were some errors in requests
 
 export class Blockchain {
     private readonly web3: any
