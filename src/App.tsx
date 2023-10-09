@@ -18,7 +18,7 @@ const timeoutMap: Map<string,  NodeJS.Timeout> = new Map()
 type FormattedResult = { resStr: string, asDollar: number }
 
 function parseAddress(address: string): string {
-  const result: string[] = [];
+  let result: string[] = [];
   const list = address.split(/\n|;|,|;\n|,\n/)
 
   for (const l of list) {
@@ -28,6 +28,9 @@ function parseAddress(address: string): string {
     }
     // TODO list and show invalid (excluded) addresses to user
   }
+
+  // dedupe
+  result = Array.from(new Set(result))
 
   return result.join('\n')
 }
