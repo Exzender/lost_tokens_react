@@ -97,6 +97,8 @@ function Button() {
       return
     }
 
+    // TODO: show warning about long time for searching
+
     processSate.setButtonState({state: 2, text: 'Stop Searching'})
 
     // exclude duplicates
