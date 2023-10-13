@@ -1,6 +1,6 @@
 import { Web3 } from 'web3'
 
-import { rpcMap, ERC20, ethRpcArray } from './const'
+import { rpcMap, ERC20, ERC20n, ethRpcArray } from './const'
 import { numberWithCommas } from "./utils";
 
 // how many concurrent requests to make - different node may limit number of incoming requests - so 20 is a good compromise
@@ -36,11 +36,37 @@ export class Blockchain {
 
         try {
             ticker = await token.methods.symbol().call({data: '0x1'}); // ticker
-            decimals = await token.methods.decimals().call({data: '0x1'}); // decimals
             validToken = true;
         } catch (e) {
-            validToken = false;
-            ticker = 'unknown';
+            // console.error(e);
+        }
+
+        if (!ticker) {
+            try {
+                ticker = await token.methods.ticker().call({data: '0x1'}); // ticker
+                validToken = true;
+            } catch (e) {
+                // console.error(e);
+            }
+        }
+
+        if (!ticker) {
+            try {
+                const tokenNonStd = new this.web3.eth.Contract(ERC20n, contractAddress)
+                const symbol32 = await tokenNonStd.methods.symbol().call({data: '0x1'})
+                ticker = (this.web3.utils.hexToAscii(symbol32)).replaceAll(String.fromCharCode(0), '')
+                // console.dir(ticker.charCodeAt(7));
+                validToken = true
+            } catch (e) {
+                // console.error(e);
+                validToken = false
+                ticker = 'unknown'
+            }
+        }
+
+        try {
+            decimals = await token.methods.decimals().call({data: '0x1'}); // decimals
+        } catch (e) {
             decimals = 18;
         }
 
