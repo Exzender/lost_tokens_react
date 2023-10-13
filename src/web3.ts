@@ -1,15 +1,16 @@
 import { Web3 } from 'web3'
 
-import { rpcMap, ERC20 } from './const'
+import { rpcMap, ERC20, ethRpcArray } from './const'
 import { numberWithCommas } from "./utils";
 
 // how many concurrent requests to make - different node may limit number of incoming requests - so 20 is a good compromise
 const asyncProcsNumber = 10  // with 50 there were some errors in requests
+const chain = 'eth' // NOTE: if chain will be changed by user - should update it according
 
 export class Blockchain {
     private readonly web3: any
     constructor(chain: string) {
-        this.web3 = new Web3(rpcMap.get(chain) || 'https://eth.llamarpc.com')
+        this.web3 = new Web3(rpcMap.get(chain) || 'https://eth.meowrpc.com')
     }
 
     checkEthAddress(address: string) {
@@ -31,35 +32,53 @@ export class Blockchain {
     async getTokenInfo(contractAddress: string) {
         const token = new this.web3.eth.Contract(ERC20, contractAddress)
 
-        const promises = []
-        // NOTE with web3 v4 it will not provide data auto field when calling contract method - and some nodes will fail to
-        // process request without data field
-        promises.push(token.methods.symbol().call({data: '0x1'})) // ticker
-        promises.push(token.methods.decimals().call({data: '0x1'})) // decimals
-        const results: any[] = await Promise.allSettled(promises)
+        let ticker, validToken, decimals;
 
-        // treating token as invalid when can't get its symbol from blockchain
-        const validToken = results[0].status === 'fulfilled'
-        const ticker = validToken ? results[0]?.value : 'unknown'
+        try {
+            ticker = await token.methods.symbol().call({data: '0x1'}); // ticker
+            decimals = await token.methods.decimals().call({data: '0x1'}); // decimals
+            validToken = true;
+        } catch (e) {
+            validToken = false;
+            ticker = 'unknown';
+            decimals = 18;
+        }
 
         // getting price from 3rd party API - may have limits on number of requests
         let priceObj = {
+            price: 0,
             USD: 0
-        }
-        try {
-            if (validToken) {
-                priceObj =(await (await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=USD`)).json())
+        };
+
+        if (validToken) {
+            try {
+                const req = (await fetch(`https://api-data.absolutewallet.com/api/v1/currencies/minimal/${chain}/${contractAddress}?fiat=USD`));
+                if (req.status === 200) {
+                    priceObj = (await req.json());
+                }
+            } catch (e) {
+                console.error(e);
             }
-        } catch (e) {
-            console.error(e)
+
+            if (priceObj.price === 0) {
+                try {
+                    const req = (await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=USD`));
+                    if (req.status === 200) {
+                        priceObj = (await req.json());
+
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
         }
 
         return {
             address: contractAddress,
             ticker,
             valid: validToken,
-            decimals: Number(results[1]?.value) || 18,
-            price: priceObj['USD'] ?? 0
+            decimals: Number(decimals) || 18,
+            price: priceObj['price'] ?? priceObj['USD'] ?? 0
         }
     }
 
@@ -72,6 +91,7 @@ export class Blockchain {
      */
     async getBalanceOf(token: any, address: string) {
         return await token.methods.balanceOf(address).call({data: '0x1'}).catch(async () => {
+            console.error(`balanceOf error: ${token._requestManager._provider.clientUrl}`);
             return await this.getBalanceOf(token, address)
         })
     }
@@ -85,7 +105,16 @@ export class Blockchain {
      */
     async findBalances(contractList: string[], tokenObject: any) {
         // token - contract object
-        const token = new this.web3.eth.Contract(ERC20, tokenObject.address)
+        const tokens = [];
+
+        if (chain === 'eth') {
+            for (const rpc of ethRpcArray) {
+                const web3provider = new Web3(rpc);
+                tokens.push(new web3provider.eth.Contract(ERC20, tokenObject.address));
+            }
+        } else {
+            tokens.push(new this.web3.eth.Contract(ERC20, tokenObject.address));
+        }
 
         let promises = []
         let counter = 0;
@@ -93,14 +122,25 @@ export class Blockchain {
         const records = []
 
         // iterate contracts
+        let token = tokens[0];
+
+
+
+        const arrayLength = tokens.length - 1;
         for (const address of contractList) {
             counter++
             promises.push(this.getBalanceOf(token, address))
             // process batch of async requests
             if (counter % asyncProcsNumber === 0) {
-                balances.push(...await Promise.all(promises))
-                promises = []
-                counter = 0
+                const idx = counter / asyncProcsNumber >> 0;
+                if (idx > arrayLength) {
+                    balances.push(...await Promise.all(promises));
+                    promises = [];
+                    counter = 0;
+                    token = tokens[0];
+                } else {
+                    token = tokens[idx];
+                }
             }
         }
         if (promises.length) {
@@ -111,7 +151,7 @@ export class Blockchain {
         // format acquired balances
         for (let i = 0; i < balances.length; i++) {
             if (balances[i] > 0n) {
-                const amount = Number(balances[i]) / Number(`1e${tokenObject.decimals}`)
+                const amount = Number(balances[i] / BigInt(Number(`1e${tokenObject.decimals}`)))
                 const dollarValue = numberWithCommas(amount * tokenObject.price)
                 records.push({
                     amount: BigInt(balances[i]),
@@ -123,9 +163,7 @@ export class Blockchain {
         }
 
         // sort from max to min
-        records.sort(function (a, b) {
-            return b.roundedAmount - a.roundedAmount
-        })
+        records.sort(function(a, b) {return b.roundedAmount - a.roundedAmount})
 
         return records
     }
@@ -145,18 +183,18 @@ export class Blockchain {
             }
         }
 
-        if (tokenObject.price === 0) {
-            return {
-                tokenAddress,
-                ticker: tokenObject.ticker,
-                decimals: tokenObject.decimals,
-                price: -1, // no price
-                records: []
-            }
-        }
+        // NOTE decided to find lost tokens even if there are no known price
+        // if (tokenObject.price === 0) {
+        //     return {
+        //         tokenAddress,
+        //         ticker: tokenObject.ticker,
+        //         decimals: tokenObject.decimals,
+        //         price: -1, // no price
+        //         records: []
+        //     }
+        // }
 
         const results = await this.findBalances(contractList, tokenObject);
-        // console.dir(results)
 
         return {
             tokenAddress,

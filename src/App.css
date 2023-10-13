@@ -148,7 +148,7 @@ body {
   font-weight: 400;
   overflow-y: scroll;
   scroll-behavior: smooth;
-  white-space: nowrap;
+  white-space: normal;
   border: 0 solid;
   letter-spacing: 0;
   line-height: 28px;
@@ -183,6 +183,11 @@ body {
 
 .search-button:disabled {
   background-color: #4f5252;
+  /*box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;*/
+}
+
+.search-button.running {
+  background-color: red;
   /*box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;*/
 }
 

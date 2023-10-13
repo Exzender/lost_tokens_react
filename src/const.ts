@@ -105,10 +105,36 @@ export const tokens = {
 
 // export const rpcMap
 export const rpcMap = new Map([
-    ['eth', 'https://eth.llamarpc.com'], // https://eth.meowrpc.com'], // 'https://ethereum.publicnode.com'], // 'https://eth.llamarpc.com' // 'https://rpc.payload.de'
+    ['eth', 'https://eth.meowrpc.com'], // https://eth.meowrpc.com'], // 'https://ethereum.publicnode.com'], // 'https://eth.llamarpc.com' // 'https://rpc.payload.de'
     ['bsc', 'https://binance.llamarpc.com'],
     ['polygon', 'https://polygon.llamarpc.com']
 ])
+
+export const ethRpcArray = [
+    'https://eth.meowrpc.com', // 0:40
+    'https://rpc.mevblocker.io', // 0:40
+    'https://ethereum.blockpi.network/v1/rpc/public', // 0:40
+    'https://eth.drpc.org', // 0:40
+    'https://eth-rpc.gateway.pokt.network',  // 1:10
+    // 'https://eth.llamarpc.com', // 1:50
+    'https://ethereum.publicnode.com', // 1:57
+
+    'https://eth.api.onfinality.io/public', // bad
+    'https://eth-mainnet.public.blastapi.io', // bad
+    // 'https://rpc.payload.de', // bad
+    // 'https://1rpc.io/eth', // 1:06 (with errors)
+    // 'https://eth-mainnet-public.unifra.io', // bad
+    // 'https://rpc.ankr.com/eth', // bad
+    // 'https://core.gashawk.io/rpc', // timeout
+    // 'https://api.securerpc.com/v1', // bad
+    // 'https://virginia.rpc.blxrbdn.com',  // bad
+    // 'https://uk.rpc.blxrbdn.com',    // bad
+    // 'https://singapore.rpc.blxrbdn.com', // bad
+    // 'https://mainnet.gateway.tenderly.co', // bad
+    // 'https://rpc.eth.gateway.fm',    // bad
+    // 'https://api.zmok.io/mainnet/oaen6dy8ff6hju9k',  // bad
+    // 'https://cloudflare-eth.com' // bad
+]
 
 // export const ERC20
 export const ERC20 = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState } from 'react'
+import { useState, createContext, useContext, useRef } from 'react'
 /* resources */
 import backImg1 from './images/group-60-1-1@2x.png'
 import backImg2 from './images/group-60-2-1@2x.png'
@@ -16,6 +16,8 @@ const CHAIN = 'eth' // eth or bsc or polygon
 const web3 = new Blockchain(CHAIN)
 const timeoutMap: Map<string,  NodeJS.Timeout> = new Map()
 type FormattedResult = { resStr: string, asDollar: number }
+
+const START_TEXT = 'Start searching'
 
 function parseAddress(address: string): string {
   let result: string[] = [];
@@ -38,7 +40,7 @@ function parseAddress(address: string): string {
 function timeoutInput(setter: any, value: string, areaName: string, setButtonState: any) {
   setter(value)
 
-  setButtonState(false)
+  setButtonState({state: 0, text: 'Checking addresses...'})
 
   if (timeoutMap.has(areaName)) {
     clearTimeout(timeoutMap.get(areaName))
@@ -47,7 +49,7 @@ function timeoutInput(setter: any, value: string, areaName: string, setButtonSta
   // Set up new one
   const timeoutId = setTimeout(function() {
     setter(parseAddress(value))
-    setButtonState(true)
+    setButtonState({state: 1, text: START_TEXT})
   }, 5000)
   timeoutMap.set(areaName, timeoutId);
 }
@@ -83,65 +85,86 @@ function formatTokenResult(res: any): FormattedResult {
   return { resStr: localStr, asDollar }
 }
 
-async function buttonClick(tokensList: string, contractsList: string, setResults: any, setResultSum: any,
-                           setResultTokenNumber: any, setDateString: any, setButtonState: any) {
+function Button() {
+  const processSate: any = useContext(ProcessContext);
+  const interruptFlag = useRef(false);
 
-  setButtonState(false)
+  async function buttonClick() {
 
-  // TODO disable text input while processing
+    if (processSate.buttonState.state === 2) { // if process is ongoing
+      interruptFlag.current = true
+      processSate.setButtonState({state: 0, text: 'Aborting search...'})
+      return
+    }
 
-  // exclude duplicates
-  const chainContracts = contractsList.split('\n')
-  const chainTokens = tokensList.split('\n')
+    processSate.setButtonState({state: 2, text: 'Stop Searching'})
 
-  if (chainTokens[0] === '') {
-    setButtonState(true)
-    return
-  }
+    // exclude duplicates
+    const chainContracts = processSate.contractsList.split('\n')
+    const chainTokens = processSate.tokensList.split('\n')
 
-  if (chainContracts[0] === '') {
-    chainContracts[0] = chainTokens[0]
-  }
-  const contractListArray = Array.from(new Set(chainContracts.concat(chainTokens)))
+    if (chainTokens[0] === '') {
+      processSate.setButtonState({state: 1, text: START_TEXT})
+      return
+    }
 
-  const resultsArray: any[] = []
-  let wholeSum = 0
-  let resStr = ''
-  let counter = 0
+    if (chainContracts[0] === '') {
+      chainContracts[0] = chainTokens[0]
+    }
+    const contractListArray:string[] = Array.from(new Set(chainContracts.concat(chainTokens)))
 
-  for (const tokenAddress of chainTokens) {
-    const res = await web3.processOneToken(contractListArray, tokenAddress)
+    const resultsArray: any[] = []
+    let wholeSum = 0
+    let resStr = ''
+    let counter = 0
 
-    const formatted: FormattedResult = formatTokenResult(res)
-    resStr += formatted.resStr + '\n'
+    for (const tokenAddress of chainTokens) {
+      // if (processSate.stopClicked) break; // stop by button
+      if (interruptFlag.current) break; // stop by button
 
-    wholeSum += formatted.asDollar
-    resultsArray.push({
-      ...res,
-      asDollar: formatted.asDollar
+      const res = await web3.processOneToken(contractListArray, tokenAddress)
+
+      const formatted: FormattedResult = formatTokenResult(res)
+      resStr += formatted.resStr + '\n'
+
+      wholeSum += formatted.asDollar
+      resultsArray.push({
+        ...res,
+        asDollar: formatted.asDollar
+      })
+
+      processSate.setResults(resStr)
+      processSate.setResultSum(`$${numberWithCommas(wholeSum)}`)
+      processSate.setResultTokenNumber(++counter)
+    }
+
+    processSate.setDateString(new Date().toDateString())
+
+    resultsArray.sort(function (a, b) {
+      return b.asDollar - a.asDollar
     })
 
-    setResults(resStr)
-    setResultSum(`$${numberWithCommas(wholeSum)}`)
-    setResultTokenNumber(++counter)
+    resStr = '';
+    for (const res of resultsArray) {
+      const formatted = formatTokenResult(res)
+      resStr += formatted.resStr + '\n'
+      processSate.setResults(resStr)
+    }
+
+    interruptFlag.current = false
+    processSate.setButtonState({state: 1, text: START_TEXT})
   }
 
-  setDateString(new Date().toDateString())
-
-  resultsArray.sort(function (a, b) {
-    return b.asDollar - a.asDollar
-  })
-
-  resStr = '';
-  for (const res of resultsArray) {
-    const formatted = formatTokenResult(res)
-    resStr += formatted.resStr + '\n'
-    setResults(resStr)
-  }
-
-  setButtonState(true)
+  return (
+      <button className={`search-button ${processSate.buttonState.state === 2 ? 'running' : ''}`}
+              disabled={!processSate.buttonState.state} onClick={buttonClick}>
+        {processSate.buttonState.text}
+      </button>
+  );
 }
 
+
+const ProcessContext: any = createContext(null);
 
 function App() {
   const contractsStr = contracts[CHAIN].join('\n')
@@ -153,7 +176,18 @@ function App() {
   const [resultSum, setResultSum] = useState('$ 00.00')
   const [resultTokenNumber, setResultTokenNumber] = useState(0)
   const [dateString, setDateString] = useState(new Date().toDateString())
-  const [buttonEnabled, setButtonState] = useState(true)
+  const [buttonState, setButtonState] = useState({state: 1, text: START_TEXT}) // 0-disabled, 1-normal, 2-STOP
+
+  const contextObject = {
+    tokensList,
+    contractsList,
+    setResults,
+    setResultSum,
+    setResultTokenNumber,
+    setDateString,
+    buttonState,
+    setButtonState
+  }
 
   return (
       <div className="container">
@@ -191,6 +225,7 @@ function App() {
                 </p>
                 <textarea
                     className="textarea-list"
+                    disabled={buttonState.state === 2}
                     value={tokensList}
                     onChange={(event) => timeoutInput(setTokens, event.target.value,
                         'tokensList', setButtonState)}
@@ -202,16 +237,16 @@ function App() {
                 </p>
                 <textarea
                     className="textarea-list"
+                    disabled={buttonState.state === 2}
                     value={contractsList}
                     onChange={(event) => timeoutInput(setContractcs, event.target.value,
                         'contractsList', setButtonState)}
                 ></textarea>
               </div>
             </div>
-            <button className="search-button" disabled={!buttonEnabled} onClick={() => buttonClick(tokensList, contractsList, setResults,
-                setResultSum, setResultTokenNumber, setDateString, setButtonState)}>
-              Start search
-            </button>
+            <ProcessContext.Provider value={contextObject}>
+              <Button />
+            </ProcessContext.Provider>
           {/*</section>*/}
 
           {/*<section className="result-section">*/}
