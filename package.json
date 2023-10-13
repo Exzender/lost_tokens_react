@@ -1,6 +1,6 @@
 {
   "name": "lost_tokens_react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "author": "Exzender",
   "license": "MIT",
@@ -11,8 +11,8 @@
   "dependencies": {
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.0.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/jest": "^29.5.5",
     "@types/node": "^20.8.5",
     "@types/react": "^18.2.25",
     "@types/react-dom": "^18.2.10",
@@ -22,6 +22,11 @@
     "typescript": "^5.2.2",
     "web-vitals": "^3.5.0",
     "web3": "^4.1.2"
+  },
+  "overrides": {
+    "react-scripts": {
+      "typescript": "^5"
+    }
   },
   "scripts": {
     "start": "react-scripts start",
