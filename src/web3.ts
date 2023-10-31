@@ -1,6 +1,6 @@
 import { Web3 } from 'web3'
 
-import { rpcMap, ERC20, ERC20n, ethRpcArray } from './const'
+import { rpcMap, ERC20, ERC20n, ethRpcArray, excludedMap } from './const'
 import { numberWithCommas } from "./utils";
 
 // how many concurrent requests to make - different node may limit number of incoming requests - so 20 is a good compromise
@@ -221,7 +221,18 @@ export class Blockchain {
     async processOneToken(contractList: string[], tokenAddress: string) {
         const tokenObject = await this.getTokenInfo(tokenAddress)
 
-        // console.dir(tokenObject);
+        let localList = [...contractList];
+
+        // exclude unneeded contracts
+        if (excludedMap.has(tokenAddress)) {
+            const excluded: string[] = excludedMap.get(tokenAddress) || [];
+            for (let ex of excluded) {
+                const index = localList.indexOf(ex);
+                if (index > -1) { // only splice array when item is found
+                    localList.splice(index, 1); // 2nd parameter means remove one item only
+                }
+            }
+        }
 
         if (!tokenObject.valid) {
             return {
@@ -233,18 +244,7 @@ export class Blockchain {
             }
         }
 
-        // NOTE decided to find lost tokens even if there are no known price
-        // if (tokenObject.price === 0) {
-        //     return {
-        //         tokenAddress,
-        //         ticker: tokenObject.ticker,
-        //         decimals: tokenObject.decimals,
-        //         price: -1, // no price
-        //         records: []
-        //     }
-        // }
-
-        const results = await this.findBalances(contractList, tokenObject);
+        const results = await this.findBalances(localList, tokenObject);
 
         return {
             tokenAddress,
