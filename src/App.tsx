@@ -15,7 +15,7 @@ import { numberWithCommas } from "./utils";
 const CHAIN = 'eth' // eth or bsc or polygon
 const web3 = new Blockchain(CHAIN)
 const timeoutMap: Map<string,  NodeJS.Timeout> = new Map()
-type FormattedResult = { resStr: string, asDollar: number }
+type FormattedResult = { resStr: string, asDollar: number, amount: number }
 
 const START_TEXT = 'Start searching'
 
@@ -58,11 +58,11 @@ function formatTokenResult(res: any): FormattedResult {
   let localStr = ''
 
   if (!res.ticker) { // invalid token
-    return { resStr : `??? [${res.tokenAddress}] - unknown token\n`, asDollar: 0 }
+    return { resStr : `??? [${res.tokenAddress}] - unknown token\n`, asDollar: 0, amount: 0 }
   }
 
   if (res.price === -1) { // can't get price
-    return { resStr : `${res.ticker} [${res.tokenAddress}]: not checked - no price found\n`, asDollar: 0 }
+    return { resStr : `${res.ticker} [${res.tokenAddress}]: not checked - no price found\n`, asDollar: 0, amount: 0 }
   }
 
   // normal process
@@ -70,8 +70,13 @@ function formatTokenResult(res: any): FormattedResult {
 
   // records already sorted by value - formatting output
   for (const record of res.records) {
-    const str = `Contract ${record.contract} => ${numberWithCommas(record.roundedAmount)} ${res.ticker} ( $${record.dollarValue} )`
-    sum += record.amount
+    let prefix = '';
+    if (record.exclude) {
+      prefix = '[X] ';
+    } else {
+      sum += record.amount;
+    }
+    const str = `Contract ${prefix}${record.contract} => ${numberWithCommas(record.roundedAmount)} ${res.ticker} ( $${record.dollarValue} )`
     localStr += str + '\n'
   }
 
@@ -82,7 +87,7 @@ function formatTokenResult(res: any): FormattedResult {
   const header = `${res.ticker} [${res.tokenAddress}]: ${numberWithCommas(roundedAmount)} tokens lost / $${numberWithCommas(asDollar)}`
   localStr = header + '\n-----------------------------------------------\n' + localStr
 
-  return { resStr: localStr, asDollar }
+  return { resStr: localStr, asDollar, amount: roundedAmount }
 }
 
 function Button() {
@@ -132,7 +137,8 @@ function Button() {
       wholeSum += formatted.asDollar
       resultsArray.push({
         ...res,
-        asDollar: formatted.asDollar
+        asDollar: formatted.asDollar,
+        amount: formatted.amount
       })
 
       processSate.setResults(resStr)
@@ -172,7 +178,7 @@ function App() {
   const contractsStr = contracts[CHAIN].join('\n')
   const tokensStr = tokens[CHAIN].join('\n')
 
-  const [contractsList, setContractcs] = useState(contractsStr)
+  const [contractsList, setContracts] = useState(contractsStr)
   const [tokensList, setTokens] = useState(tokensStr)
   const [resultsList, setResults] = useState('')
   const [resultSum, setResultSum] = useState('$ 00.00')
@@ -241,7 +247,7 @@ function App() {
                     className="textarea-list"
                     disabled={buttonState.state === 2}
                     value={contractsList}
-                    onChange={(event) => timeoutInput(setContractcs, event.target.value,
+                    onChange={(event) => timeoutInput(setContracts, event.target.value,
                         'contractsList', setButtonState)}
                 ></textarea>
               </div>

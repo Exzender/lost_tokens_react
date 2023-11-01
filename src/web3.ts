@@ -3,9 +3,14 @@ import { Web3 } from 'web3'
 import { rpcMap, ERC20, ERC20n, ethRpcArray, excludedMap } from './const'
 import { numberWithCommas } from "./utils";
 
-// how many concurrent requests to make - different node may limit number of incoming requests - so 20 is a good compromise
-// const asyncProcsNumber = 5  // with 50 there were some errors in requests
 const chain = 'eth' // NOTE: if chain will be changed by user - should update it according
+type TokenBalanceResult = {
+    amount: bigint,
+    roundedAmount: number,
+    dollarValue: string,
+    contract: string,
+    exclude?: boolean
+}
 
 export class Blockchain {
     private readonly web3: any
@@ -73,7 +78,8 @@ export class Blockchain {
         // getting price from 3rd party API - may have limits on number of requests
         let priceObj = {
             price: 0,
-            USD: 0
+            USD: 0,
+            logo: ''
         };
 
         if (validToken) {
@@ -104,7 +110,8 @@ export class Blockchain {
             ticker,
             valid: validToken,
             decimals: Number(decimals) || 18,
-            price: priceObj['price'] ?? priceObj['USD'] ?? 0
+            price: priceObj['price'] ?? priceObj['USD'] ?? 0,
+            logo: priceObj.logo
         }
     }
 
@@ -181,7 +188,7 @@ export class Blockchain {
      * @param {Object} tokenObject - the token object containing token information
      * @return {Array} returns an array of records containing contract balances
      */
-    async findBalances(contractList: string[], tokenObject: any) {
+    async findBalances(contractList: string[], tokenObject: any): Promise<TokenBalanceResult[]> {
         // token - contract object
         const workers = [];
 
@@ -224,15 +231,15 @@ export class Blockchain {
         let localList = [...contractList];
 
         // exclude unneeded contracts
-        if (excludedMap.has(tokenAddress)) {
-            const excluded: string[] = excludedMap.get(tokenAddress) || [];
-            for (let ex of excluded) {
-                const index = localList.indexOf(ex);
-                if (index > -1) { // only splice array when item is found
-                    localList.splice(index, 1); // 2nd parameter means remove one item only
-                }
-            }
-        }
+        // if (excludedMap.has(tokenAddress)) {
+        //     const excluded: string[] = excludedMap.get(tokenAddress) || [];
+        //     for (let ex of excluded) {
+        //         const index = localList.indexOf(ex);
+        //         if (index > -1) { // only splice array when item is found
+        //             localList.splice(index, 1); // 2nd parameter means remove one item only
+        //         }
+        //     }
+        // }
 
         if (!tokenObject.valid) {
             return {
@@ -246,11 +253,22 @@ export class Blockchain {
 
         const results = await this.findBalances(localList, tokenObject);
 
+        // mark excluded results
+        if (excludedMap.has(tokenAddress)) {
+            const excluded: string[] = excludedMap.get(tokenAddress) || [];
+            for (let item of results) {
+                if (excluded.includes(item.contract)) {
+                    item.exclude = true;
+                }
+            }
+        }
+
         return {
             tokenAddress,
             ticker: tokenObject.ticker,
             decimals: tokenObject.decimals,
             price: tokenObject.price,
+            logo: tokenObject.logo,
             records: results
         }
     }
