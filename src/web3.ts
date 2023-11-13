@@ -2,7 +2,7 @@ import { Web3 } from 'web3'
 
 import { rpcMap, ERC20, ERC20n, ethRpcArray } from './const'
 import { numberWithCommas } from "./utils";
-import path from "path";
+// import path from "path";
 
 const chain = 'eth' // NOTE: if chain will be changed by user - should update it according
 type TokenBalanceResult = {
@@ -336,7 +336,7 @@ export class Blockchain {
 
     loadExcludes(): Map<string, string[]> {
         const res = new Map();
-        const excludesArray = require(path.resolve(__dirname + '/excludes.json'));
+        const excludesArray = require('./excludes.json');
         for (let item of excludesArray) {
             const key = item[0].toLowerCase();
             const values = item[1].map((val: string) => val.toLowerCase());

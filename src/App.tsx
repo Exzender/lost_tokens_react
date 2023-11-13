@@ -165,6 +165,12 @@ function Button() {
       }
     }
 
+    for (const res of resultsArray) {
+      const formatted = formatTokenResult(res);
+      res.asDollar = formatted.asDollar;
+      res.amount = formatted.amount;
+    }
+
     resultsArray.sort(function (a, b) {
       return b.asDollar - a.asDollar
     })
