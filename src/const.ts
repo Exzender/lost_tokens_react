@@ -162,28 +162,6 @@ export const ethRpcArray = [
     // 'https://mainnet.gateway.tenderly.co', // bad // disabled x2
 ]
 
-
-export const excludedMap    = new Map([
-    ['0xaaa9214f675316182eaa21c85f0ca99160cc3aaa', ['0xaaa9214f675316182eaa21c85f0ca99160cc3aaa']], // QUANX
-    ['0x5e8422345238f34275888049021821e8e08caa1f', ['0xac3e018457b222d93114458476f3e3416abbe38f']], // frxETH at strxETH
-    ['0xde4EE8057785A7e8e800Db58F9784845A5C2Cbd6', ['0xde4EE8057785A7e8e800Db58F9784845A5C2Cbd6']], // DEXE
-    ['0xd7c49cee7e9188cca6ad8ff264c1da2e69d4cf3b', ['0x0d438f3b5175bebc262bf23753c1e53d03432bde']], // NXM at wNXM
-    ['0x622dFfCc4e83C64ba959530A5a5580687a57581b', ['0x622dFfCc4e83C64ba959530A5a5580687a57581b']], // AUTO
-    ['0xd33526068d116ce69f19a9ee46f0bd304f21a51f', ['0xd33526068d116ce69f19a9ee46f0bd304f21a51f']], // RPL
-    ['0x6b175474e89094c44da98b954eedeac495271d0f', ['0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643']], // DAI at cDAI
-    ['0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', ['0x39aa39c021dfbae8fac545936693ac917d5e7563']], // USDC at cUSDC
-    ['0xa2120b9e674d3fc3875f415a7df52e382f141225', ['0xa2120b9e674d3fc3875f415a7df52e382f141225']], // ATA
-    ['0x0d8775f648430679a709e98d2b0cb6250d2887ef', ['0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e']], // BAT at cBAT
-    ['0xd13c7342e1ef687c5ad21b27c2b65d772cab5c8c', ['0xd13c7342e1ef687c5ad21b27c2b65d772cab5c8c']], // UOS
-    ['0x0f5d2fb29fb7d3cfee444a200298f468908cc942', ['0xfd09cf7cfffa9932e33668311c4777cb9db3c9be']], // MANA at wMANA
-    ['0x6b3595068778dd592e39a122f4f5a5cf09c90fe2', ['0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272']], // SUSHI at xSUSHI
-    ['0x4b520c812e8430659fc9f12f6d0c39026c83588d', ['0x4f81c790581b240a5c948afd173620ecc8c71c8d']], // DG at xDG
-    ['0xaf5191b0de278c7286d6c7cc6ab6bb8a73ba2cd6', ['0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6']], // STG
-    ['0x4a220e6096b25eadb88358cb44068a3248254675', ['0x4a220e6096b25eadb88358cb44068a3248254675']], // QNT
-    ['0xdac17f958d2ee523a2206206994597c13d831ec7', ['0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9']], // USDT as cUSDT (!new)
-    ['0x80fB784B7eD66730e8b1DBd9820aFD29931aab03', ['0x80fB784B7eD66730e8b1DBd9820aFD29931aab03']]  // LEND
-])
-
 // export const ERC20
 export const ERC20 = [{"constant":true,"inputs":[],"name":"ticker","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]
 export const ERC20n = [{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"bytes32"}],"payable":false,"type":"function"}]

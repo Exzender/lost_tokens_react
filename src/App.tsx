@@ -18,6 +18,8 @@ const timeoutMap: Map<string,  NodeJS.Timeout> = new Map()
 type FormattedResult = { resStr: string, asDollar: number, amount: number }
 
 const START_TEXT = 'Start searching'
+const EXCLUDES = process.env.EXCLUDES !== 'false';
+const excludedMap = web3.loadExcludes();
 
 function parseAddress(address: string): string {
   let result: string[] = [];
@@ -147,6 +149,21 @@ function Button() {
     }
 
     processSate.setDateString(new Date().toDateString())
+
+    if (EXCLUDES) {
+      // mark excluded results
+      for (const res of resultsArray) {
+        const tokenAddress = res.tokenAddress.toLowerCase();
+        if (excludedMap.has(tokenAddress)) {
+          const excluded = excludedMap.get(tokenAddress);
+          for (let item of res.records) {
+            if (excluded?.includes(item.contract.toLowerCase())) {
+              item.exclude = true;
+            }
+          }
+        }
+      }
+    }
 
     resultsArray.sort(function (a, b) {
       return b.asDollar - a.asDollar
